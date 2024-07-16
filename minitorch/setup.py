@@ -170,6 +170,8 @@ class MiniTorchExtension(object):
         dll_path = dll_path[-1]
         dll_name = os.path.basename(dll_path)
         pyd_name = dll_name.replace(".dll", ".pyd")
+        if os.path.exists(f"./minitorch/_C/{pyd_name}"):
+            os.remove(f"./minitorch/_C/{pyd_name}")
         copyfile(dll_path, f"./minitorch/_C/{dll_name}")
         os.rename(f"./minitorch/_C/{dll_name}", f"./minitorch/_C/{pyd_name}")
             

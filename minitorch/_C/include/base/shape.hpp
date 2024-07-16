@@ -4,7 +4,7 @@
 #include <utility>
 #include<vector>
 #include<initializer_list>
-#include <cstdint>
+#include <algorithm>
 #include <cstddef>
 
 
@@ -27,28 +27,30 @@ namespace minitorch {
         for (auto size: sizes) {
             this->shape.push_back(size);
         }
-        for (int idx = 0; idx <= this->ndim(); idx ++) {
+        for (int idx = 0; idx < this->ndim(); idx++) {
             if (idx == 0) {
                 this->stride.push_back(size_t(1));
             } else {
                 this->stride.push_back(
-                    this->shape[this->ndim() - idx - 1] * this->stride[idx - 1]
+                    this->shape[this->ndim() - idx] * this->stride[idx - 1]
                 );
             }
         }
+        std::reverse(this->stride.begin(), this->stride.end());
     } 
 
     inline Shape::Shape(std::vector<size_t> sizes) {
         this->shape = std::move(sizes);
-        for (int idx = 0; idx <= this->ndim(); idx ++) {
+        for (int idx = 0; idx < this->ndim(); idx++) {
             if (idx == 0) {
                 this->stride.push_back(size_t(1));
             } else {
                 this->stride.push_back(
-                    this->shape[this->ndim() - idx - 1] * this->stride[idx - 1]
+                    this->shape[this->ndim() - idx] * this->stride[idx - 1]
                 );
             }
         }
+        std::reverse(this->stride.begin(), this->stride.end());
     }
 
     inline size_t Shape::ndim() const {

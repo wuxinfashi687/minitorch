@@ -22,6 +22,7 @@ PYBIND11_MODULE(binding, m) {
     m.def("get_version", &get_version);
     py::class_<mt::Shape>(m, "__Shape")
         .def_readwrite("_shape", &mt::Shape::shape)
+        .def_readonly("_stride", &mt::Shape::stride)
         .def(py::init<std::vector<size_t>>(), py::arg("sizes"))
         .def(py::init())
         .def("__getitem__", &mt::Shape::get_item, py::arg("index"))
@@ -69,8 +70,9 @@ PYBIND11_MODULE(binding, m) {
         .value("Cuda2Cpu", mt::CopyKindEnum::Cuda2Cpu)
         .value("Cuda2Cuda", mt::CopyKindEnum::Cuda2Cuda);
     py::class_<mt::DType>(m, "__DType")
-        .def(py::init<mt::DTypeEnum>(), py::arg("dtype_enum"));
-    py::class_<mt::python::TensorBinding>(m, "__Tensor")
+        .def(py::init<mt::DTypeEnum>(), py::arg("dtype_enum"))
+        .def_readonly("type", &mt::DType::type);
+    py::class_<mt::python::TensorBinding>(m, "__Tensor", py::buffer_protocol())
         .def(
             py::init<py::buffer, mt::Shape, mt::DType, mt::DeviceEnum>(),
             py::arg("buffer"),
@@ -78,9 +80,11 @@ PYBIND11_MODULE(binding, m) {
             py::arg("dtype"),
             py::arg("device_enum")
         )
-        // .def_buffer(
-        //     [](mt::python::TensorBinding& cls) -> py::buffer_info {return mt::python::TensorBinding::get_buffer(cls);}
-        // )
+        .def_buffer(
+            [](mt::python::TensorBinding& cls) -> py::buffer_info {
+                return cls.get_buffer();
+            }
+        )
         .def("get_shape", &mt::python::TensorBinding::get_shape)
         .def("get_dtype", &mt::python::TensorBinding::get_dtype);
 }

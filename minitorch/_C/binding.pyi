@@ -262,6 +262,11 @@ class UIntEnum():
     pass
 class __DType():
     def __init__(self, dtype_enum: DTypeEnum) -> None: ...
+    @property
+    def type(self) -> DTypeEnum:
+        """
+        :type: DTypeEnum
+        """
     pass
 class __GenericRawDType():
     def __init__(self) -> None: ...
@@ -288,6 +293,11 @@ class __Shape():
     @_shape.setter
     def _shape(self, arg0: list[int]) -> None:
         pass
+    @property
+    def _stride(self) -> list[int]:
+        """
+        :type: list[int]
+        """
     pass
 class __Tensor():
     def __init__(self, buffer: Buffer, shape: __Shape, dtype: __DType, device_enum: DeviceEnum) -> None: ...

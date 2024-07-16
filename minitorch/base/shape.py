@@ -26,7 +26,7 @@ class Shape(__Shape):
         return self._ndim()
     
     def __repr__(self) -> str:
-        return self._shape.__repr__()  
+        return f"shape: {self._shape}, stride: {self._stride}"
 
     def __setitem__(self, index: int, item: int) -> None:
         if index >= 0:

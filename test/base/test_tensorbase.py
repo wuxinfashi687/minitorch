@@ -1,9 +1,10 @@
 import sys
 sys.path.append("./")
 
-import minitorch._C.binding as binding
+from minitorch import Tensor, Shape, Device, DType, DTypeEnum
 
 
 if __name__ == "__main__":
-    tensor = binding._Tensor()
+    tensor = Tensor(bytearray(10 * 4), Shape(3, 2, 4), DType(DTypeEnum.KFloat32), Device.KCpu)
+    print(memoryview(tensor))
     print(1)

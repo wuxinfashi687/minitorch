@@ -16,7 +16,7 @@ namespace minitorch {
             TensorBinding(py::buffer memory, Shape shape, DType dtype, DeviceEnum device_enum);
             Shape get_shape() const;
             DType get_dtype() const;
-            static py::buffer_info get_buffer(TensorBinding& cls);
+            py::buffer_info get_buffer() const;
             ~TensorBinding() = default;
         };
 
@@ -48,10 +48,10 @@ namespace minitorch {
             return this->tensor_.get()->get_dtype();
         }
 
-        inline py::buffer_info TensorBinding::get_buffer(TensorBinding& cls) {
-            const DType dtype = cls.tensor_.get()->get_dtype();
-            const Shape shape = cls.tensor_.get()->get_shape();
-            void* points = cls.tensor_.get()->ptr();
+        inline py::buffer_info TensorBinding::get_buffer() const {
+            const DType dtype = this->tensor_.get()->get_dtype();
+            const Shape shape = this->tensor_.get()->get_shape();
+            void* points = this->tensor_.get()->ptr();
             switch (dtype.type) {
                 case DTypeEnum::KInt32:
                     return py::buffer_info(
