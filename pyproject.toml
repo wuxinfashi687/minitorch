@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "minitorch"
+version = "0.0.1"
+description = ""
+authors = ["wuxin"]
+license = "LGPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+
+
+[tool.poetry.group.dev.dependencies]
+pybind11 = "^2.13.1"
+pybind11-stubgen = "0.16.2"
+
+
+[tool.poetry.scripts]
+gen_cmake = "minitorch.setup:gen_cmake_file"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
