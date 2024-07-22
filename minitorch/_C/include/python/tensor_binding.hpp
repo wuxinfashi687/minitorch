@@ -14,10 +14,12 @@ namespace minitorch {
             std::shared_ptr<Tensor> tensor_;
         public:
             TensorBinding(py::buffer memory, Shape shape, DType dtype, DeviceEnum device_enum);
+            TensorBinding(Tensor tensor);
             Shape get_shape() const;
             DType get_dtype() const;
             py::buffer_info get_buffer() const;
             ~TensorBinding() = default;
+            std::string to_string() const;
         };
 
         inline TensorBinding::TensorBinding(py::buffer memory, Shape shape, DType dtype, DeviceEnum device_enum) {
@@ -39,6 +41,9 @@ namespace minitorch {
             }
         }
 
+        inline TensorBinding::TensorBinding(Tensor tensor) {
+            this->tensor_ = std::make_shared<Tensor>(tensor);
+        }
 
         inline Shape TensorBinding::get_shape() const {
             return this->tensor_.get()->get_shape();
@@ -164,6 +169,26 @@ namespace minitorch {
                 default:
                     throw std::runtime_error("未知的类型!");
             }
+        }
+
+        inline std::string TensorBinding::to_string() const {
+            return this->tensor_.get()->to_string();
+        }
+
+
+
+        inline TensorBinding zeros(Shape shape, DType dtype, DeviceEnum device_enum) {
+            if (device_enum == DeviceEnum::KCpu) {
+                Tensor tensor(HostAllocatorFactory::get_instance(), shape, dtype);
+                HostAllocatorFactory::get_instance()->memset_zero(tensor.ptr(), size_t(shape.elem_size() * dtype.byte_size()));
+                return TensorBinding(tensor);
+            }
+            if (device_enum == DeviceEnum::KCuda) {
+                Tensor tensor(CudaAllocatorFactory::get_instance(), shape, dtype);
+                CudaAllocatorFactory::get_instance()->memset_zero(tensor.ptr(), size_t(shape.elem_size() * dtype.byte_size()));
+                return TensorBinding(tensor);
+            }
+            throw std::runtime_error("未知的设备类型!!!");
         }
 
 

@@ -1,11 +1,15 @@
-from typing import overload, List
+from typing import overload, List, Tuple
 
-from minitorch._C.binding import __Shape
+from minitorch._C.binding import Shape_
 
 
-class Shape(__Shape):
+class Shape(object):
     @overload
     def __init__(self, sizes: List[int]) -> None:
+        pass
+
+    @overload
+    def __init__(self, sizes: Tuple[int]) -> None:
         pass
 
     @overload
@@ -14,28 +18,45 @@ class Shape(__Shape):
 
     def __init__(self, *args, **kwargs) -> None:
         if "sizes" in kwargs:
-            super(Shape, self).__init__(kwargs.pop("sizes"))
+            self._obj = kwargs.pop("sizes")
+            return
 
-        if len(args) == 1 and isinstance(args[0], list):
-            super(Shape, self).__init__(args[0])
+        if len(args) == 1:
+            if isinstance(args[0], list):
+                self._obj = args[0]
+            elif isinstance(args[0], tuple):
+                self._obj = list(args[0])
+            else:
+                raise TypeError(f"预计接受一个List[int]类型或者Tuple[int]类型的参数，实际为{type(args[0])}!")
         else:
-            super(Shape, self).__init__(list(args))
-        
+            self._obj = list(args)
+
     @property
     def ndim(self) -> int:
-        return self._ndim()
+        return Shape_(self._obj).ndim()
+
+    @property
+    def stride(self) -> List[int]:
+        return Shape_(self._obj).stride
+
+    def tolist(self) -> list:
+        return self._obj.copy()
+
+    @property
+    def size(self) -> int:
+        return Shape_(self._obj).elem_size()
     
     def __repr__(self) -> str:
-        return f"shape: {self._shape}, stride: {self._stride}"
+        return f"shape: {Shape_(self._obj).shape}, stride: {Shape_(self._obj).stride}"
 
     def __setitem__(self, index: int, item: int) -> None:
         if index >= 0:
-            return super().__setitem__(index, item)
+            return self._obj.__setitem__(index, item)
         else:
-            return super().__setitem__(self.ndim + index, item)
+            return self._obj.__setitem__(self.ndim + index, item)
         
     def __getitem__(self, index: int) -> int:
         if index >= 0:
-            return super().__getitem__(index)
+            return self._obj.__getitem__(index)
         else:
-            return super().__getitem__(self.ndim + index)
+            return self._obj.__getitem__(self.ndim + index)

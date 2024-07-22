@@ -135,6 +135,7 @@ namespace minitorch {
         switch (this->device_enum_) {
             case DeviceEnum::KCpu: {
                 std::memset(data_ptr, 0, byte_size);
+                break;
             }
             case DeviceEnum::KCuda: {
                 if (stream != nullptr) {
@@ -146,6 +147,7 @@ namespace minitorch {
                 if (need_sync) {
                     cudaDeviceSynchronize();
                 }
+                break;
             }
             default:
                 FATAL("未知的DeviceEnum类型: " << static_cast<int>(this->device_enum_));

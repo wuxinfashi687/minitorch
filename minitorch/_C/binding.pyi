@@ -9,11 +9,18 @@ import typing
 __all__ = [
     "CopyKindEnum",
     "DTypeEnum",
+    "DType_",
     "DeviceEnum",
     "FloatEnum",
+    "GenericRawDType_",
+    "GenericRawFloatType_",
+    "GenericRawIntType_",
     "IntEnum",
+    "Shape_",
+    "Tensor_",
     "UIntEnum",
-    "get_version"
+    "get_version",
+    "zeros_"
 ]
 
 
@@ -117,6 +124,14 @@ class DTypeEnum():
     KUnKnown: minitorch._C.binding.DTypeEnum # value = <DTypeEnum.KUnKnown: 0>
     __members__: dict # value = {'KUnKnown': <DTypeEnum.KUnKnown: 0>, 'KInt32': <DTypeEnum.KInt32: 1>, 'KInt64': <DTypeEnum.KInt64: 2>, 'KInt16': <DTypeEnum.KInt16: 3>, 'KInt8': <DTypeEnum.KInt8: 4>, 'KUInt32': <DTypeEnum.KUInt32: 5>, 'KUInt64': <DTypeEnum.KUInt64: 6>, 'KUInt16': <DTypeEnum.KUInt16: 7>, 'KUInt8': <DTypeEnum.KUInt8: 8>, 'KFloat32': <DTypeEnum.KFloat32: 9>, 'KFloat64': <DTypeEnum.KFloat64: 10>, 'KBool': <DTypeEnum.KBool: 11>}
     pass
+class DType_():
+    def __init__(self, dtype_enum: DTypeEnum) -> None: ...
+    @property
+    def type(self) -> DTypeEnum:
+        """
+        :type: DTypeEnum
+        """
+    pass
 class DeviceEnum():
     """
     Members:
@@ -184,6 +199,15 @@ class FloatEnum():
     KFloat64: minitorch._C.binding.FloatEnum # value = <FloatEnum.KFloat64: 1>
     __members__: dict # value = {'KFloat32': <FloatEnum.KFloat32: 0>, 'KFloat64': <FloatEnum.KFloat64: 1>}
     pass
+class GenericRawDType_():
+    def __init__(self) -> None: ...
+    pass
+class GenericRawFloatType_():
+    def __init__(self) -> None: ...
+    pass
+class GenericRawIntType_():
+    def __init__(self) -> None: ...
+    pass
 class IntEnum():
     """
     Members:
@@ -221,6 +245,32 @@ class IntEnum():
     KInt64: minitorch._C.binding.IntEnum # value = <IntEnum.KInt64: 1>
     KInt8: minitorch._C.binding.IntEnum # value = <IntEnum.KInt8: 3>
     __members__: dict # value = {'KInt32': <IntEnum.KInt32: 0>, 'KInt64': <IntEnum.KInt64: 1>, 'KInt16': <IntEnum.KInt16: 2>, 'KInt8': <IntEnum.KInt8: 3>}
+    pass
+class Shape_():
+    def __getitem__(self, index: int) -> int: ...
+    @typing.overload
+    def __init__(self, sizes: list[int]) -> None: ...
+    @typing.overload
+    def __init__(self) -> None: ...
+    def __setitem__(self, index: int, item: int) -> None: ...
+    def elem_size(self) -> int: ...
+    def ndim(self) -> int: ...
+    @property
+    def shape(self) -> list[int]:
+        """
+        :type: list[int]
+        """
+    @property
+    def stride(self) -> list[int]:
+        """
+        :type: list[int]
+        """
+    pass
+class Tensor_():
+    def __init__(self, buffer: Buffer, shape: Shape_, dtype: DType_, device_enum: DeviceEnum) -> None: ...
+    def get_dtype(self) -> DType_: ...
+    def get_shape(self) -> Shape_: ...
+    def to_string(self) -> str: ...
     pass
 class UIntEnum():
     """
@@ -260,49 +310,9 @@ class UIntEnum():
     UKInt8: minitorch._C.binding.UIntEnum # value = <UIntEnum.UKInt8: 3>
     __members__: dict # value = {'UKInt32': <UIntEnum.UKInt32: 0>, 'UKInt64': <UIntEnum.UKInt64: 1>, 'UKInt16': <UIntEnum.UKInt16: 2>, 'UKInt8': <UIntEnum.UKInt8: 3>}
     pass
-class __DType():
-    def __init__(self, dtype_enum: DTypeEnum) -> None: ...
-    @property
-    def type(self) -> DTypeEnum:
-        """
-        :type: DTypeEnum
-        """
-    pass
-class __GenericRawDType():
-    def __init__(self) -> None: ...
-    pass
-class __GenericRawFloatType():
-    def __init__(self) -> None: ...
-    pass
-class __GenericRawIntType():
-    def __init__(self) -> None: ...
-    pass
-class __Shape():
-    def __getitem__(self, index: int) -> int: ...
-    @typing.overload
-    def __init__(self, sizes: list[int]) -> None: ...
-    @typing.overload
-    def __init__(self) -> None: ...
-    def __setitem__(self, index: int, item: int) -> None: ...
-    def _ndim(self) -> int: ...
-    @property
-    def _shape(self) -> list[int]:
-        """
-        :type: list[int]
-        """
-    @_shape.setter
-    def _shape(self, arg0: list[int]) -> None:
-        pass
-    @property
-    def _stride(self) -> list[int]:
-        """
-        :type: list[int]
-        """
-    pass
-class __Tensor():
-    def __init__(self, buffer: Buffer, shape: __Shape, dtype: __DType, device_enum: DeviceEnum) -> None: ...
-    def get_dtype(self) -> __DType: ...
-    def get_shape(self) -> __Shape: ...
+def __init_print_stream() -> None:
     pass
 def get_version() -> str:
+    pass
+def zeros_(shape: Shape_, dtype: DType_, device_enum: DeviceEnum) -> Tensor_:
     pass

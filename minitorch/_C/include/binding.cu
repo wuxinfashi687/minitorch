@@ -1,4 +1,5 @@
 #include<string>
+#include<Windows.h>
 
 #include<pybind11/pybind11.h>
 #include<pybind11/stl.h>
@@ -18,21 +19,28 @@ std::string get_version() {
 }
 
 
+void init_print_stream() {
+    SetConsoleOutputCP(CP_UTF8);
+}
+
+
 PYBIND11_MODULE(binding, m) {
     m.def("get_version", &get_version);
-    py::class_<mt::Shape>(m, "__Shape")
-        .def_readwrite("_shape", &mt::Shape::shape)
-        .def_readonly("_stride", &mt::Shape::stride)
+    m.def("__init_print_stream", &init_print_stream);
+    py::class_<mt::Shape>(m, "Shape_")
+        .def_readonly("shape", &mt::Shape::shape)
+        .def_readonly("stride", &mt::Shape::stride)
         .def(py::init<std::vector<size_t>>(), py::arg("sizes"))
         .def(py::init())
         .def("__getitem__", &mt::Shape::get_item, py::arg("index"))
         .def("__setitem__", &mt::Shape::set_item, py::arg("index"), py::arg("item"))
-        .def("_ndim", &mt::Shape::ndim);
-    py::class_<mt::GenericRawDType>(m, "__GenericRawDType")
+        .def("ndim", &mt::Shape::ndim)
+        .def("elem_size", &mt::Shape::elem_size);
+    py::class_<mt::GenericRawDType>(m, "GenericRawDType_")
         .def(py::init());
-    py::class_<mt::GenericRawIntType>(m, "__GenericRawIntType")
+    py::class_<mt::GenericRawIntType>(m, "GenericRawIntType_")
         .def(py::init());
-    py::class_<mt::GenericRawFloatType>(m, "__GenericRawFloatType")
+    py::class_<mt::GenericRawFloatType>(m, "GenericRawFloatType_")
         .def(py::init());
     py::enum_<mt::DTypeEnum>(m, "DTypeEnum")
         .value("KUnKnown", mt::DTypeEnum::KUnKnown)
@@ -69,10 +77,10 @@ PYBIND11_MODULE(binding, m) {
         .value("Cpu2Cuda", mt::CopyKindEnum::Cpu2Cuda)
         .value("Cuda2Cpu", mt::CopyKindEnum::Cuda2Cpu)
         .value("Cuda2Cuda", mt::CopyKindEnum::Cuda2Cuda);
-    py::class_<mt::DType>(m, "__DType")
+    py::class_<mt::DType>(m, "DType_")
         .def(py::init<mt::DTypeEnum>(), py::arg("dtype_enum"))
         .def_readonly("type", &mt::DType::type);
-    py::class_<mt::python::TensorBinding>(m, "__Tensor", py::buffer_protocol())
+    py::class_<mt::python::TensorBinding>(m, "Tensor_", py::buffer_protocol())
         .def(
             py::init<py::buffer, mt::Shape, mt::DType, mt::DeviceEnum>(),
             py::arg("buffer"),
@@ -86,5 +94,7 @@ PYBIND11_MODULE(binding, m) {
             }
         )
         .def("get_shape", &mt::python::TensorBinding::get_shape)
-        .def("get_dtype", &mt::python::TensorBinding::get_dtype);
+        .def("get_dtype", &mt::python::TensorBinding::get_dtype)
+        .def("to_string", &mt::python::TensorBinding::to_string);
+    m.def("zeros_", &mt::python::zeros, py::arg("shape"), py::arg("dtype"), py::arg("device_enum"));
 }

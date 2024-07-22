@@ -129,9 +129,10 @@ class MiniTorchExtension(object):
             with open("./minitorch/_C/binding.pyi", "w") as fp:
                 fp.write("#\n# Automatically generated file, do not edit!\n#\n\n")
                 fp.write("\n".join(module.to_lines()))
-        except ImportError:
+        except ImportError as e:
             for pyd in os.listdir("./minitorch/_C"):
                 if os.path.isfile(os.path.join("./minitorch/_C", pyd)) and pyd.startswith("binding") and pyd.endswith(".pyd"):
+                    print(e)
                     raise RuntimeError(f"minitorch._C模块下存在扩展{pyd}, 但是无法正常打开，请检查该文件是否被正确的编译!!!")
             raise FileNotFoundError("minitorch._C模块下不存在可以使用的binding.pyd!")
 
