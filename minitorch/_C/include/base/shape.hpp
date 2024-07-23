@@ -9,9 +9,16 @@
 #include<numeric>
 #include<functional>
 
+#include"type_extension.hpp"
+#include"base/slice.hpp"
+
 
 namespace minitorch {
     class Shape {
+        std::shared_ptr<Shape> front = nullptr;
+        std::vector<Slice> reference_slices = std::vector<Slice>();
+        size_t _get_ptr_index(std::initializer_list<size_t> index) const;
+        size_t _get_ptr_index(const std::vector<size_t> &index) const;
     public:
         std::vector<size_t> shape = std::vector<size_t>();
         std::vector<size_t> stride = std::vector<size_t>();
@@ -23,6 +30,9 @@ namespace minitorch {
         void set_item(size_t index, size_t item);
         size_t elem_size() const;
         std::string to_string() const;
+        void set_reference(const std::shared_ptr<Shape> &reference, const std::vector<Slice> &slices);
+        size_t get_ptr_index(std::initializer_list<size_t> index) const;
+        size_t get_ptr_index(const std::vector<size_t> &index) const;
     };
 
     inline Shape::Shape() = default;
@@ -39,6 +49,7 @@ namespace minitorch {
                     this->shape[this->ndim() - idx] * this->stride[idx - 1]
                 );
             }
+            this->reference_slices.push_back(Slice());
         }
         std::reverse(this->stride.begin(), this->stride.end());
     } 
@@ -84,6 +95,93 @@ namespace minitorch {
         }
         os_string << ")";
         return os_string.str();
+    }
+
+    inline void Shape::set_reference(const std::shared_ptr<Shape> &reference, const std::vector<Slice> &slices) {
+        if (reference != nullptr) {
+            this->front = reference;
+            auto full_slice = std::vector<Slice>();
+            size_t slice_dim = slices.size();
+            for (size_t idx = 0; idx < this->ndim(); idx++) {
+                if (idx >= slice_dim) {
+                    full_slice.push_back(Slice(0, this->get_item(idx), 1));
+                } else {
+                    IndexType slice_start_index = slices[idx].get_start();
+                    IndexType slice_end_index = slices[idx].get_end();
+                    size_t start_index = 0;
+                    size_t end_index = 0;
+                    if (std::holds_alternative<py::none>(slice_start_index)) {
+                        start_index = this->get_item(idx);
+                    } else {
+                        start_index = std::get<size_t>(slice_start_index);
+                    }
+                    if (std::holds_alternative<py::none>(slice_end_index)) {
+                        end_index = this->get_item(idx);
+                    } else {
+                        end_index = std::get<size_t>(slice_end_index);
+                    }
+                    CHECK(end_index <= this->get_item(idx));
+                    CHECK(start_index <= this->get_item(idx));
+                    full_slice.push_back(Slice(start_index, end_index, slices[idx].get_step()));
+                }
+            }
+            this->reference_slices = full_slice;
+        } else {
+            WARNING("函数minitorch::Shape::set_reference警告: 接收了一个nullptr类型的reference参数!");
+        }
+    }
+
+    inline size_t Shape::get_ptr_index(const std::vector<size_t> &index) const {
+        std::shared_ptr<Shape> cur_shape_ptr = this->front;
+        auto cur_index = index;
+        while (cur_shape_ptr != nullptr) {
+            auto cur_shape = cur_shape_ptr.get();
+            auto cur_slice = cur_shape->reference_slices;
+            auto cur_full_index = std::vector<size_t>();
+            if (cur_index.size() < cur_shape->ndim()) {
+                for (size_t idx = cur_index.size(); idx < cur_shape->ndim(); idx++) {
+                    cur_index.insert(cur_index.begin(), 0);
+                }
+            }
+            for (size_t idx = 0; idx < cur_shape->ndim(); idx++) {
+                IndexType start_variant = cur_slice[idx].get_start();
+                size_t start;
+                if (std::holds_alternative<py::none>(start_variant)) {
+                    start = 0;
+                } else {
+                    start = std::get<size_t>(start_variant);
+                }
+                IndexType end_variant = cur_slice[idx].get_start();
+                cur_full_index.push_back(start + cur_index[idx] * cur_slice[idx].get_step());
+            }
+            cur_index = cur_full_index;
+            cur_shape_ptr = cur_shape->front;
+        }
+        return cur_shape_ptr.get()->_get_ptr_index(cur_index);
+    }
+
+    inline size_t Shape::_get_ptr_index(const std::initializer_list<size_t> index) const {
+        CHECK(index.size() == this->ndim());
+        size_t ptr_index = 0;
+        for (int idx = 0; idx < index.size(); idx++) {
+            size_t cur_idx = index.begin()[idx];
+            CHECK(cur_idx < this->get_item(idx));
+            ptr_index += cur_idx * this->stride[idx];
+        }
+
+        return ptr_index;
+    }
+
+    inline size_t Shape::_get_ptr_index(const std::vector<size_t> &index) const {
+        CHECK(index.size() == this->ndim());
+        size_t ptr_index = 0;
+        for (int idx = 0; idx < index.size(); idx++) {
+            size_t cur_idx = index.begin()[idx];
+            CHECK(cur_idx < this->get_item(idx));
+            ptr_index += cur_idx * this->stride[idx];
+        }
+
+        return ptr_index;
     }
 
 }

@@ -51,6 +51,11 @@ class Tensor(object):
     def __repr__(self) -> str:
         return self._obj.to_string()
 
+    def flatten_get(self, index: int) -> int | float | bool:
+        if index < 0 or index >= self.shape.size:
+            raise IndexError
+        return self._obj.flatten_get(index)
+
 
 def zeros(shape: Shape | Sequence[int], dtype: DType, device: Device) -> Tensor:
     if isinstance(shape, list):

@@ -6,6 +6,7 @@
 #include<pybind11/buffer_info.h>
 
 #include"python/tensor_binding.hpp"
+#include"python/kernel_binding.hpp"
 
 
 namespace py = pybind11;
@@ -80,6 +81,16 @@ PYBIND11_MODULE(binding, m) {
     py::class_<mt::DType>(m, "DType_")
         .def(py::init<mt::DTypeEnum>(), py::arg("dtype_enum"))
         .def_readonly("type", &mt::DType::type);
+    py::class_<mt::NewDim>(m, "NewDim");
+    py::class_<mt::IndexType>(m, "IndexType");
+    py::class_<mt::Slice>(m, "Slice_")
+        .def(
+            py::init<mt::IndexType, mt::IndexType, size_t>(),
+            py::arg("start"),
+            py::arg("end"),
+            py::arg("step")
+        )
+        .def(py::init());
     py::class_<mt::python::TensorBinding>(m, "Tensor_", py::buffer_protocol())
         .def(
             py::init<py::buffer, mt::Shape, mt::DType, mt::DeviceEnum>(),
@@ -95,6 +106,7 @@ PYBIND11_MODULE(binding, m) {
         )
         .def("get_shape", &mt::python::TensorBinding::get_shape)
         .def("get_dtype", &mt::python::TensorBinding::get_dtype)
-        .def("to_string", &mt::python::TensorBinding::to_string);
+        .def("to_string", &mt::python::TensorBinding::to_string)
+        .def("flatten_get", &mt::python::TensorBinding::flatten_get, py::arg("index"));
     m.def("zeros_", &mt::python::zeros, py::arg("shape"), py::arg("dtype"), py::arg("device_enum"));
 }

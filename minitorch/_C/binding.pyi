@@ -15,8 +15,11 @@ __all__ = [
     "GenericRawDType_",
     "GenericRawFloatType_",
     "GenericRawIntType_",
+    "IndexType",
     "IntEnum",
+    "NewDim",
     "Shape_",
+    "Slice_",
     "Tensor_",
     "UIntEnum",
     "get_version",
@@ -208,6 +211,8 @@ class GenericRawFloatType_():
 class GenericRawIntType_():
     def __init__(self) -> None: ...
     pass
+class IndexType():
+    pass
 class IntEnum():
     """
     Members:
@@ -246,6 +251,8 @@ class IntEnum():
     KInt8: minitorch._C.binding.IntEnum # value = <IntEnum.KInt8: 3>
     __members__: dict # value = {'KInt32': <IntEnum.KInt32: 0>, 'KInt64': <IntEnum.KInt64: 1>, 'KInt16': <IntEnum.KInt16: 2>, 'KInt8': <IntEnum.KInt8: 3>}
     pass
+class NewDim():
+    pass
 class Shape_():
     def __getitem__(self, index: int) -> int: ...
     @typing.overload
@@ -266,8 +273,15 @@ class Shape_():
         :type: list[int]
         """
     pass
+class Slice_():
+    @typing.overload
+    def __init__(self, start: typing.Union[int, None], end: typing.Union[int, None], step: int) -> None: ...
+    @typing.overload
+    def __init__(self) -> None: ...
+    pass
 class Tensor_():
     def __init__(self, buffer: Buffer, shape: Shape_, dtype: DType_, device_enum: DeviceEnum) -> None: ...
+    def flatten_get(self, index: int) -> typing.Union[int, int, int, int, int, int, int, int, float, float, bool, None]: ...
     def get_dtype(self) -> DType_: ...
     def get_shape(self) -> Shape_: ...
     def to_string(self) -> str: ...

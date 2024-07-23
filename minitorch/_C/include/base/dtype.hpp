@@ -14,14 +14,14 @@ namespace py = pybind11;
 
 namespace minitorch {
     using GenericRawDType = std::variant<
-            uint_fast32_t,
-            uint_fast64_t,
-            uint_fast16_t,
-            uint_fast8_t,
-            int_fast32_t,
-            int_fast64_t,
-            int_fast16_t,
-            int_fast8_t,
+            uint32_t,
+            uint64_t,
+            uint16_t,
+            uint8_t,
+            int32_t,
+            int64_t,
+            int16_t,
+            int8_t,
             float_t,
             double_t,
             bool,
@@ -30,18 +30,18 @@ namespace minitorch {
 
 
     using GenericRawIntType = std::variant<
-        int_fast32_t,
-        int_fast64_t,
-        int_fast16_t,
-        int_fast8_t
+        int32_t,
+        int64_t,
+        int16_t,
+        int8_t
     >;
 
 
     using GenericRawUIntType = std::variant<
-        uint_fast32_t,
-        uint_fast64_t,
-        uint_fast16_t,
-        uint_fast8_t
+        uint32_t,
+        uint64_t,
+        uint16_t,
+        uint8_t
     >;
 
 
@@ -104,21 +104,21 @@ namespace minitorch {
     inline size_t DType::byte_size() const{
         switch (this->type) {
             case DTypeEnum::KInt32:
-                return sizeof(int_fast32_t);
+                return sizeof(int32_t);
             case DTypeEnum::KInt64:
-                return sizeof(int_fast64_t);
+                return sizeof(int64_t);
             case DTypeEnum::KInt16:
-                return sizeof(int_fast16_t);
+                return sizeof(int16_t);
             case DTypeEnum::KInt8:
-                return sizeof(int_fast8_t);
+                return sizeof(int8_t);
             case DTypeEnum::KUInt32:
-                return sizeof(uint_fast32_t);
+                return sizeof(uint32_t);
             case DTypeEnum::KUInt64:
-                return sizeof(uint_fast64_t);
+                return sizeof(uint64_t);
             case DTypeEnum::KUInt16:
-                return sizeof(uint_fast16_t);
+                return sizeof(uint16_t);
             case DTypeEnum::KUInt8:
-                return sizeof(uint_fast8_t);
+                return sizeof(uint8_t);
             case DTypeEnum::KFloat32:
                 return sizeof(float_t);
             case DTypeEnum::KFloat64:

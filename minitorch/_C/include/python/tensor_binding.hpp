@@ -20,6 +20,7 @@ namespace minitorch {
             py::buffer_info get_buffer() const;
             ~TensorBinding() = default;
             std::string to_string() const;
+            GenericRawDType flatten_get(const py::int_ &index) const;
         };
 
         inline TensorBinding::TensorBinding(py::buffer memory, Shape shape, DType dtype, DeviceEnum device_enum) {
@@ -62,7 +63,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<int_fast32_t>::format(),
+                        py::format_descriptor<int32_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -71,7 +72,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<int_fast64_t>::format(),
+                        py::format_descriptor<int64_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -80,7 +81,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<int_fast16_t>::format(),
+                        py::format_descriptor<int16_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -89,7 +90,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<int_fast8_t>::format(),
+                        py::format_descriptor<int8_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -98,7 +99,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<uint_fast32_t>::format(),
+                        py::format_descriptor<uint32_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -107,7 +108,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<uint_fast64_t>::format(),
+                        py::format_descriptor<uint64_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -116,7 +117,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<uint_fast16_t>::format(),
+                        py::format_descriptor<uint16_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -125,7 +126,7 @@ namespace minitorch {
                     return py::buffer_info(
                         points,
                         dtype.byte_size(),
-                        py::format_descriptor<uint_fast8_t>::format(),
+                        py::format_descriptor<uint8_t>::format(),
                         shape.ndim(),
                         shape.shape,
                         shape.stride
@@ -175,6 +176,34 @@ namespace minitorch {
             return this->tensor_.get()->to_string();
         }
 
+        inline GenericRawDType TensorBinding::flatten_get(const py::int_ &index) const {
+            switch (this->get_dtype().type) {
+                case DTypeEnum::KBool:
+                    return this->tensor_->ptr<bool>(index);
+                case DTypeEnum::KFloat32:
+                    return this->tensor_->ptr<float_t>(index);
+                case DTypeEnum::KFloat64:
+                    return this->tensor_->ptr<double_t>(index);
+                case DTypeEnum::KInt8:
+                    return this->tensor_->ptr<int8_t>(index);
+                case DTypeEnum::KInt16:
+                    return this->tensor_->ptr<int16_t>(index);
+                case DTypeEnum::KInt32:
+                    return this->tensor_->ptr<int32_t>(index);
+                case DTypeEnum::KInt64:
+                    return this->tensor_->ptr<int64_t>(index);
+                case DTypeEnum::KUInt8:
+                    return this->tensor_->ptr<uint8_t>(index);
+                case DTypeEnum::KUInt16:
+                    return this->tensor_->ptr<uint16_t>(index);
+                case DTypeEnum::KUInt32:
+                    return this->tensor_->ptr<uint32_t>(index);
+                case DTypeEnum::KUInt64:
+                    return this->tensor_->ptr<uint64_t>(index);
+                default:
+                    FATAL("暂不支持的DTypeEnum类型: " << static_cast<int>(this->get_dtype().type) << "!");
+            }
+        }
 
 
         inline TensorBinding zeros(Shape shape, DType dtype, DeviceEnum device_enum) {

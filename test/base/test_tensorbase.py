@@ -17,3 +17,4 @@ if __name__ == "__main__":
     print(tensor.shape)
     tensor = gen_tensor()
     print(tensor)
+    print(tensor.flatten_get(24))
