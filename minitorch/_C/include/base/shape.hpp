@@ -33,6 +33,7 @@ namespace minitorch {
         void set_reference(const std::shared_ptr<Shape> &reference, const std::vector<Slice> &slices);
         size_t get_ptr_index(std::initializer_list<size_t> index) const;
         size_t get_ptr_index(const std::vector<size_t> &index) const;
+        std::vector<size_t> get_slice_index_from_ptr_index(size_t ptr_index) const;
     };
 
     inline Shape::Shape() = default;
@@ -97,14 +98,18 @@ namespace minitorch {
         return os_string.str();
     }
 
-    inline void Shape::set_reference(const std::shared_ptr<Shape> &reference, const std::vector<Slice> &slices) {
+    inline void Shape::set_reference(
+        const std::shared_ptr<Shape> &reference,
+        const std::vector<Slice> &slices
+    ) {
         if (reference != nullptr) {
             this->front = reference;
             auto full_slice = std::vector<Slice>();
-            size_t slice_dim = slices.size();
-            for (size_t idx = 0; idx < this->ndim(); idx++) {
+            const size_t ndim = reference.get()->ndim();
+            const size_t slice_dim = slices.size();
+            for (size_t idx = 0; idx < ndim; idx++) {
                 if (idx >= slice_dim) {
-                    full_slice.push_back(Slice(0, this->get_item(idx), 1));
+                    full_slice.push_back(Slice(size_t(0), reference.get()->get_item(idx), slices[idx].get_step()));
                 } else {
                     IndexType slice_start_index = slices[idx].get_start();
                     IndexType slice_end_index = slices[idx].get_end();
@@ -120,8 +125,6 @@ namespace minitorch {
                     } else {
                         end_index = std::get<size_t>(slice_end_index);
                     }
-                    CHECK(end_index <= this->get_item(idx));
-                    CHECK(start_index <= this->get_item(idx));
                     full_slice.push_back(Slice(start_index, end_index, slices[idx].get_step()));
                 }
             }
@@ -134,13 +137,26 @@ namespace minitorch {
     inline size_t Shape::get_ptr_index(const std::vector<size_t> &index) const {
         std::shared_ptr<Shape> cur_shape_ptr = this->front;
         auto cur_index = index;
+        std::cout << "Start get_ptr_index!" << std::endl;
         while (cur_shape_ptr != nullptr) {
             auto cur_shape = cur_shape_ptr.get();
             auto cur_slice = cur_shape->reference_slices;
             auto cur_full_index = std::vector<size_t>();
+            std::cout << cur_shape->to_string() << std::endl;
             if (cur_index.size() < cur_shape->ndim()) {
-                for (size_t idx = cur_index.size(); idx < cur_shape->ndim(); idx++) {
-                    cur_index.insert(cur_index.begin(), 0);
+                for (size_t idx = 0; idx < cur_shape->ndim(); idx++) {
+                    size_t start;
+                    size_t end;
+                    if (std::holds_alternative<py::none>(cur_slice[idx].get_start()))
+                        start = 0;
+                    else
+                        start = std::get<size_t>(cur_slice[idx].get_start());
+                    if (std::holds_alternative<py::none>(cur_slice[idx].get_end()))
+                        end = cur_shape->get_item(idx);
+                    else
+                        end = std::get<size_t>(cur_slice[idx].get_end());
+                    if (end - start == 0)
+                        cur_index.insert(cur_index.begin() + idx, 0);
                 }
             }
             for (size_t idx = 0; idx < cur_shape->ndim(); idx++) {
@@ -157,7 +173,10 @@ namespace minitorch {
             cur_index = cur_full_index;
             cur_shape_ptr = cur_shape->front;
         }
-        return cur_shape_ptr.get()->_get_ptr_index(cur_index);
+        std::cout << "End get_ptr_index!" << std::endl;
+        if (cur_shape_ptr == nullptr)
+            return this->_get_ptr_index(cur_index);
+        return cur_shape_ptr->_get_ptr_index(cur_index);
     }
 
     inline size_t Shape::_get_ptr_index(const std::initializer_list<size_t> index) const {
@@ -165,7 +184,6 @@ namespace minitorch {
         size_t ptr_index = 0;
         for (int idx = 0; idx < index.size(); idx++) {
             size_t cur_idx = index.begin()[idx];
-            CHECK(cur_idx < this->get_item(idx));
             ptr_index += cur_idx * this->stride[idx];
         }
 
@@ -175,15 +193,26 @@ namespace minitorch {
     inline size_t Shape::_get_ptr_index(const std::vector<size_t> &index) const {
         CHECK(index.size() == this->ndim());
         size_t ptr_index = 0;
-        for (int idx = 0; idx < index.size(); idx++) {
+        for (size_t idx = 0; idx < index.size(); idx++) {
             size_t cur_idx = index.begin()[idx];
-            CHECK(cur_idx < this->get_item(idx));
             ptr_index += cur_idx * this->stride[idx];
         }
-
         return ptr_index;
     }
 
+    inline std::vector<size_t> Shape::get_slice_index_from_ptr_index(size_t ptr_index) const {
+        std::cout << "get_slice_index_from_ptr_index start!" << std::endl;
+        std::vector<size_t> index(this->ndim(), 0);
+        for (size_t i = this->ndim() - 1; i > 0; i--) {
+            index[i - 1] = ptr_index / this->stride[i - 1];
+            ptr_index %= this->stride[i - 1];
+        }
+        // 最后一个维度的索引直接赋值
+        index.front() = ptr_index;
+        std::reverse(index.begin(), index.end());
+
+        return index;
+    }
 }
 
 #endif

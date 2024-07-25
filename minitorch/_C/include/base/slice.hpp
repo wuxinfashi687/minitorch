@@ -6,6 +6,8 @@
 #define SLICE_HPP
 
 #include<pybind11/pybind11.h>
+#include<variant>
+
 namespace py = pybind11;
 
 namespace minitorch {

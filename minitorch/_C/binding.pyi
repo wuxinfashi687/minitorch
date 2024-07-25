@@ -5,6 +5,8 @@
 from __future__ import annotations
 import minitorch._C.binding
 import typing
+import numpy
+_Shape = typing.Tuple[int, ...]
 
 __all__ = [
     "CopyKindEnum",
@@ -22,6 +24,7 @@ __all__ = [
     "Slice_",
     "Tensor_",
     "UIntEnum",
+    "from_numpy_",
     "get_version",
     "zeros_"
 ]
@@ -283,6 +286,7 @@ class Tensor_():
     def __init__(self, buffer: Buffer, shape: Shape_, dtype: DType_, device_enum: DeviceEnum) -> None: ...
     def flatten_get(self, index: int) -> typing.Union[int, int, int, int, int, int, int, int, float, float, bool, None]: ...
     def get_dtype(self) -> DType_: ...
+    def get_item(self, slices: list[Slice_]) -> Tensor_: ...
     def get_shape(self) -> Shape_: ...
     def to_string(self) -> str: ...
     pass
@@ -325,6 +329,8 @@ class UIntEnum():
     __members__: dict # value = {'UKInt32': <UIntEnum.UKInt32: 0>, 'UKInt64': <UIntEnum.UKInt64: 1>, 'UKInt16': <UIntEnum.UKInt16: 2>, 'UKInt8': <UIntEnum.UKInt8: 3>}
     pass
 def __init_print_stream() -> None:
+    pass
+def from_numpy_(ndarray: numpy.ndarray) -> Tensor_:
     pass
 def get_version() -> str:
     pass

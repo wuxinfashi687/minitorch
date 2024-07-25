@@ -1,6 +1,7 @@
 from typing import Sequence, Optional
+from numpy import ndarray
 
-from minitorch._C.binding import Tensor_, DTypeEnum, zeros_
+from minitorch._C.binding import Tensor_, DTypeEnum, zeros_, Slice_, from_numpy_
 from minitorch.base.device import Device
 from minitorch.base.dtype import DType
 from minitorch.base.shape import Shape, Shape_
@@ -56,6 +57,15 @@ class Tensor(object):
             raise IndexError
         return self._obj.flatten_get(index)
 
+    def __getitem__(self, *slice: slice) -> "Tensor":
+        slices = []
+        for cur_slice in slice:
+            if cur_slice.step is None:
+                slices.append(Slice_(cur_slice.start, cur_slice.stop, 1))
+            else:
+                slices.append(Slice_(cur_slice.start, cur_slice.stop, cur_slice.step))
+        return Tensor(None, None, None, None, self._obj.get_item(slices))
+
 
 def zeros(shape: Shape | Sequence[int], dtype: DType, device: Device) -> Tensor:
     if isinstance(shape, list):
@@ -68,3 +78,7 @@ def zeros(shape: Shape | Sequence[int], dtype: DType, device: Device) -> Tensor:
         raise TypeError(f"shape参数预计接受Shape类型或者Sequence[int]类型, 实际为{type(shape)}!")
     _C_tensor = zeros_(shape, dtype, device)
     return Tensor(None, None, None, None, _C_tensor)
+
+
+def from_numpy(array: ndarray) -> Tensor:
+    return Tensor(None, None, None, None, from_numpy_(array))

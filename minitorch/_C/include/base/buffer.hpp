@@ -49,8 +49,8 @@ namespace minitorch {
         this->allocator_ = allocator;
         this->data_ptr_ = ptr;
         this->use_external_ = use_external;
-        if (!this->data_ptr_ && this->allocator_) {
-            this->device_enum_ = this->allocator_->get_type();
+        this->device_enum_ = this->allocator_->get_type();
+        if (this->data_ptr_ == nullptr && this->allocator_ != nullptr) {
             this->use_external_ = false;
             this->data_ptr_ = this->allocator_->allocate(byte_size);
         }

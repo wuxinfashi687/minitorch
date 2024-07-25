@@ -107,6 +107,8 @@ PYBIND11_MODULE(binding, m) {
         .def("get_shape", &mt::python::TensorBinding::get_shape)
         .def("get_dtype", &mt::python::TensorBinding::get_dtype)
         .def("to_string", &mt::python::TensorBinding::to_string)
+        .def("get_item", &mt::python::TensorBinding::get_item, py::arg("slices"))
         .def("flatten_get", &mt::python::TensorBinding::flatten_get, py::arg("index"));
     m.def("zeros_", &mt::python::zeros, py::arg("shape"), py::arg("dtype"), py::arg("device_enum"));
+    m.def("from_numpy_", &mt::python::from_numpy, py::arg("ndarray"));
 }

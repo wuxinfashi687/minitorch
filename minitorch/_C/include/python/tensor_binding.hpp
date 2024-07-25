@@ -21,6 +21,7 @@ namespace minitorch {
             ~TensorBinding() = default;
             std::string to_string() const;
             GenericRawDType flatten_get(const py::int_ &index) const;
+            TensorBinding get_item(const std::vector<Slice> &slices) const;
         };
 
         inline TensorBinding::TensorBinding(py::buffer memory, Shape shape, DType dtype, DeviceEnum device_enum) {
@@ -205,6 +206,11 @@ namespace minitorch {
             }
         }
 
+        inline TensorBinding TensorBinding::get_item(const std::vector<Slice> &slices) const {
+            Tensor new_tensor =  this->tensor_.get()->get_item(slices);
+            return TensorBinding(new_tensor);
+        }
+
 
         inline TensorBinding zeros(Shape shape, DType dtype, DeviceEnum device_enum) {
             if (device_enum == DeviceEnum::KCpu) {
@@ -221,9 +227,84 @@ namespace minitorch {
         }
 
 
-        // TensorBinding from_numpy(py::array ndarray) {
-        //
-        // }
+        inline TensorBinding from_numpy(const py::array &ndarray) {
+            auto buffer_info = ndarray.request();
+            auto buffer_ptr = buffer_info.ptr;
+            auto old_shape = buffer_info.shape;
+            auto shape_vector = std::vector<size_t>();
+            for (size_t idx = 0; idx < old_shape.size(); idx++) {
+                shape_vector.push_back(old_shape[idx]);
+            }
+            DTypeEnum dtype_enum;
+            switch (ndarray.dtype().kind()) {
+                case 'b':  // 布尔类型
+                    dtype_enum = DTypeEnum::KBool;
+                break;
+                case 'i':  // 整数类型
+                    switch (ndarray.dtype().itemsize()) {
+                        case 1:
+                            dtype_enum = DTypeEnum::KInt8;
+                        break;
+                        case 2:
+                            dtype_enum = DTypeEnum::KInt16;
+                        break;
+                        case 4:
+                            dtype_enum = DTypeEnum::KInt32;
+                        break;
+                        case 8:
+                            dtype_enum = DTypeEnum::KInt64;
+                        break;
+                        default:
+                            dtype_enum = DTypeEnum::KUnKnown;
+                        break;
+                    }
+                break;
+                case 'u':  // 无符号整数类型
+                    switch (ndarray.dtype().itemsize()) {
+                        case 1:
+                            dtype_enum = DTypeEnum::KUInt8;
+                        break;
+                        case 2:
+                            dtype_enum = DTypeEnum::KUInt16;
+                        break;
+                        case 4:
+                            dtype_enum = DTypeEnum::KUInt32;
+                        break;
+                        case 8:
+                            dtype_enum = DTypeEnum::KUInt64;
+                        break;
+                        default:
+                            dtype_enum = DTypeEnum::KUnKnown;
+                        break;
+                    }
+                break;
+                case 'f':  // 浮点数类型
+                    switch (ndarray.dtype().itemsize()) {
+                        case 4:
+                            dtype_enum = DTypeEnum::KFloat32;
+                        break;
+                        case 8:
+                            dtype_enum = DTypeEnum::KFloat64;
+                        break;
+                        default:
+                            dtype_enum = DTypeEnum::KUnKnown;
+                        break;
+                    }
+                break;
+                default:
+                    dtype_enum = DTypeEnum::KUnKnown;
+                break;
+            }
+            CHECK(dtype_enum != DTypeEnum::KUnKnown);
+            const auto dtype = DType(dtype_enum);
+            std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
+                buffer_info.itemsize * buffer_info.size,
+                HostAllocatorFactory::get_instance(),
+                buffer_ptr,
+                false
+            );
+            return TensorBinding(Tensor(buffer, Shape(shape_vector), dtype));
+        }
     }
 }
 
